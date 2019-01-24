@@ -1,0 +1,41 @@
+version: "3.5"
+services:
+
+    mariadb:
+      image: mariadb:10.4
+      container_name: kata-mariadb
+      working_dir: /application
+      volumes:
+        - .:/application
+      environment:
+        - MYSQL_ROOT_PASSWORD=root
+        - MYSQL_DATABASE=db
+        - MYSQL_USER=kata
+        - MYSQL_PASSWORD=kata
+      ports:
+        - "2002:3306"
+
+    webserver:
+      image: nginx:alpine
+      container_name: kata-webserver
+      working_dir: /application
+      volumes:
+          - .:/application
+          - ./phpdocker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      ports:
+       - "2000:80"
+
+    php-fpm:
+      build: phpdocker/php-fpm
+      container_name: kata-php-fpm
+      working_dir: /application
+      environment:
+        - MYSQL_ROOT_HOST=mariadb
+        - MYSQL_ROOT_PASSWORD=root
+        - MYSQL_DATABASE=db
+        - MYSQL_USER=kata
+        - MYSQL_PASSWORD=kata
+        - MYSQL_CHARSET=utf8
+      volumes:
+        - .:/application
+        - ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/7.3/fpm/conf.d/99-overrides.ini
